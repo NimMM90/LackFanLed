@@ -13,7 +13,7 @@ CRGB leds[NUM_LEDS];
 #define PWM6_MAX        OCR4C
 
 //Encoders
-CommonBusEncoders encoders(19,20,21,2);
+CommonBusEncoders encoders(20,19,21,2);
 
 //Default values
 int hsv[3] = {10,10,100};             //HSV array
