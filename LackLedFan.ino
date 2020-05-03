@@ -2,10 +2,11 @@
 #include <CommonBusEncoders.h>
 
 //FastLED
-#define LED_PIN         3
+#define DATA_PIN        1
 #define LED_TYPE        WS2813
-#define NUM_LEDS        32
+#define NUM_LEDS        31
 CRGB leds[NUM_LEDS];
+#define COLOR_ORDER GRB
 
 //Fan PWM
 #define PWM6            OCR4D
@@ -15,18 +16,16 @@ CRGB leds[NUM_LEDS];
 CommonBusEncoders encoders(19,20,21,2);
 
 //Default values
-int hsv[3] = {120,120,200};         //HSV array
+int hsv[3] = {10,10,100};             //HSV array
 int spd = 120;                      //fanspeed
-bool LIGHT = 0;
+bool LIGHT;
 
 //Setup
 void setup(){
     FastLED.clear();
-    LIGHT = 0;
     
     //encoders
-    encoders.setDebounce(12);
-    encoders.resetChronoAfter(1000);
+    encoders.resetChronoAfter(2000);
     //Encoder 1 cycles through HSV values for FastLED
     encoders.addEncoder(1,4,18,3,100,0);
     //Encoder 2 sets the fanspeed in mode 1 and the LED brightness in mode 2
@@ -37,8 +36,9 @@ void setup(){
     pwmSet6();
 
     //LED control
-    FastLED.addLeds<WS2813, LED_PIN, RGB>(leds, NUM_LEDS);
+    FastLED.addLeds<LED_TYPE, DATA_PIN>(leds, NUM_LEDS);
     setColorHSV();
+    LIGHT = true;
 }
 
 //Main loop
@@ -51,7 +51,7 @@ void loop(){
     //Fan PWM
     pwmSet6();
     //LED control
-    setColorHSV();
+    if(LIGHT){setColorHSV();}
 }
 
 /*-------------------------------- HELPERS ------------------------------*/
@@ -98,11 +98,10 @@ void setValues(int code){
             else{spd -= 5;}
             break;
         }
-        case 299:{
-            LIGHT = !LIGHT;                 //Toggle the LEDs on/off
-            if(LIGHT){ hsv[2] = 250;}
-            else{ hsv[2] = 0; }
-            
+        case 299:{                          //Toggle the LEDs on/off                       
+            LIGHT = !LIGHT;
+            if(!LIGHT){FastLED.clear(true); }
+            else{setColorHSV();}          
         }
     }
 }
@@ -138,9 +137,9 @@ void pwmSet6()
 //set HSV
 void setColorHSV() {
   // create a new HSV color
-  CHSV color = CHSV(hsv[0], hsv[1], hsv[3]);
+  CHSV color = CHSV(hsv[0], hsv[1], hsv[2]);
 
   // use FastLED to set the color of all LEDs in the strip to the same color
   fill_solid(leds, NUM_LEDS, color);
-  LIGHT = 1;
+  FastLED.show();
 }
